@@ -1,0 +1,87 @@
+{% extends "admin/base.html" %}
+{% load static dashboard %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'portfolio/admin.css' %}">
+{% endblock %}
+
+{% block bodyclass %}{% if user.is_authenticated and user.is_staff %}pf-app{% endif %}{% endblock %}
+
+{% block header %}
+{% if user.is_authenticated and user.is_staff %}
+  {# ---------- Sidebar ---------- #}
+  <aside class="pf-side" id="pfSide">
+    <a class="pf-side__brand" href="{% url 'admin:index' %}">
+      <span class="pf-logo">P</span>
+      <span><strong>{{ site_header }}</strong><small>Admin panel</small></span>
+    </a>
+
+    <nav class="pf-side__nav" aria-label="Main menu">
+      {% sidebar_nav as nav %}
+      {% for section in nav %}
+        {% if section.title %}<div class="pf-side__label">{{ section.title }}</div>{% endif %}
+        {% for it in section.items %}
+          <a href="{{ it.url }}" class="pf-side__link{% if it.active %} is-active{% endif %}">
+            {% icon it.icon %}<span>{{ it.label }}</span>
+            {% if it.badge %}<em class="pf-side__badge">{{ it.badge }}</em>{% endif %}
+          </a>
+        {% endfor %}
+      {% endfor %}
+    </nav>
+
+    <div class="pf-side__foot">
+      <a href="/" target="_blank" rel="noopener" class="pf-side__link">{% icon "external" %}<span>View website</span></a>
+      {% if user.is_superuser %}
+      <a href="{% url 'admin:auth_user_changelist' %}" class="pf-side__link{% if '/admin/auth/' in request.path %} is-active{% endif %}">{% icon "lock" %}<span>Admin logins</span></a>
+      {% endif %}
+    </div>
+  </aside>
+  <div class="pf-scrim" id="pfScrim"></div>
+
+  {# ---------- Top bar ---------- #}
+  <header id="header" class="pf-top">
+    <button type="button" class="pf-top__menu" id="pfMenu" aria-label="Open menu">{% icon "menu" 20 %}</button>
+    <div class="pf-top__crumbs">
+      {% block breadcrumbs %}
+        <ol class="breadcrumbs"><li><a href="{% url 'admin:index' %}">Home</a></li>{% if title %}<li aria-current="page">{{ title }}</li>{% endif %}</ol>
+      {% endblock %}
+    </div>
+    <div class="pf-top__right">
+      {% include "admin/color_theme_toggle.html" %}
+      <a class="pf-top__site" href="/" target="_blank" rel="noopener">{% icon "external" 16 %}<span>View website</span></a>
+      <div class="pf-top__user">
+        <span class="pf-avatar">{{ user.get_username|initial }}</span>
+        <span class="pf-top__name">{% firstof user.get_short_name user.get_username %}</span>
+      </div>
+      <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="pf-top__logout" title="Log out">{% icon "logout" 18 %}</button>
+      </form>
+    </div>
+  </header>
+{% else %}
+  <header id="header" class="pf-top pf-top--plain">
+    <div id="branding"><a class="pf-side__brand" href="{% url 'admin:index' %}"><span class="pf-logo">P</span><span><strong>{{ site_header }}</strong><small>Admin panel</small></span></a></div>
+  </header>
+{% endif %}
+{% endblock %}
+
+{% block nav-breadcrumbs %}{% endblock %}
+{% block nav-global %}{% endblock %}
+
+{% block extrabody %}{{ block.super }}
+<script>
+  (function () {
+    var side = document.getElementById("pfSide"), btn = document.getElementById("pfMenu"), scrim = document.getElementById("pfScrim");
+    if (!side || !btn) return;
+    function toggle(open) { document.body.classList.toggle("pf-menu-open", open); }
+    btn.addEventListener("click", function () { toggle(!document.body.classList.contains("pf-menu-open")); });
+    scrim.addEventListener("click", function () { toggle(false); });
+  })();
+</script>
+{% endblock %}

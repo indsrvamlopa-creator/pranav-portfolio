@@ -1,0 +1,628 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ site.name }} — {{ site.tagline }} | {{ site.title }}</title>
+  <meta name="description" content="{{ site.seo_description }}">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta property="og:title" content="{{ site.name }} — {{ site.tagline }}">
+  <meta property="og:description" content="{{ site.seo_description }}">
+  {% if site.profile_photo %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ site.profile_photo.url }}">{% endif %}
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a0a'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='%23d4af37' font-family='Georgia' font-style='italic'>{{ site.name|slice:':1'|upper }}</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=Playfair+Display:ital,wght@1,500;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'portfolio/css/style.css' %}">
+</head>
+<body class="is-loading">
+
+  <!-- ============ PRELOADER ============ -->
+  <div class="preloader" id="preloader" aria-hidden="true">
+    <div class="preloader__inner">
+      <div class="preloader__name">
+        <span class="preloader__outline">{{ site.name|upper }}</span>
+        <span class="preloader__fill" id="preloaderFill">{{ site.name|upper }}</span>
+      </div>
+      <div class="preloader__meta">
+        <span>Rendering frames</span>
+        <span class="preloader__count" id="preloaderCount">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grain" aria-hidden="true"></div>
+  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav" id="nav">
+    <a href="#home" class="nav__logo">{{ site.name }}<span>.</span></a>
+    <nav class="nav__links" id="navLinks">
+      <a href="#about">About</a>
+      {% if services %}<a href="#services">Services</a>{% endif %}
+      {% if projects %}<a href="#work">Work</a>{% endif %}
+      {% if tools %}<a href="#skills">Skills</a>{% endif %}
+      {% if testimonials %}<a href="#testimonials">Reviews</a>{% elif process %}<a href="#process">Process</a>{% endif %}
+      <a href="#contact" class="nav__links-cta-mobile">Contact</a>
+    </nav>
+    <a href="#contact" class="btn btn--gold btn--sm nav__cta magnetic">Let's Talk</a>
+    <button class="nav__burger" id="navBurger" aria-label="Open menu"><span></span><span></span></button>
+  </header>
+
+  <main>
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="home">
+      {% if site.hero_bg_video %}
+      <video class="hero__video" src="{{ site.hero_bg_video.url }}" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
+      <div class="hero__video-shade" aria-hidden="true"></div>
+      {% elif site.showreel_file %}
+      <video class="hero__video hero__video--reel" src="{{ site.showreel_file.url }}" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
+      <div class="hero__video-shade" aria-hidden="true"></div>
+      {% endif %}
+      <canvas class="hero__dust" id="heroDust" aria-hidden="true"></canvas>
+      <div class="hero__spot" aria-hidden="true"></div>
+      <div class="hero__orb hero__orb--1"></div>
+      <div class="hero__orb hero__orb--2"></div>
+
+      <div class="hero__content">
+        {# ---------- Left: headline ---------- #}
+        <div class="hero__left">
+          {% if site.is_available %}
+          <div class="hero__badge reveal"><span class="pulse"></span> {{ site.availability_text }}</div>
+          {% endif %}
+          <h1 class="hero__title" aria-label="{{ site.tagline }}">
+            <span class="line"><span class="line__inner">{{ site.hero_line1 }}</span></span>
+            <span class="line line--indent"><span class="line__inner"><em class="gold-text">{{ site.hero_gold }}</em></span></span>
+            <span class="line"><span class="line__inner">{{ site.hero_line2 }}</span></span>
+            <span class="line line--indent"><span class="line__inner"><span class="outline-text">{{ site.hero_outline }}</span></span></span>
+          </h1>
+          <div class="hero__actions reveal">
+            {% if site.showreel_file or site.showreel_url %}
+            <button type="button" class="btn btn--gold magnetic" id="showreelBtn" data-showreel
+                    data-video="{% if site.showreel_file %}{{ site.showreel_file.url }}{% endif %}"
+                    data-embed="{{ site.showreel_embed }}">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              Watch Showreel
+            </button>
+            <a href="#work" class="btn btn--ghost magnetic">View Work →</a>
+            {% else %}
+            <a href="#work" class="btn btn--gold magnetic">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              View My Work
+            </a>
+            <a href="#contact" class="btn btn--ghost magnetic">Hire Me →</a>
+            {% endif %}
+          </div>
+          {% if stats %}
+          <div class="hero__stats reveal">
+            {% for s in stats|slice:":3" %}<div><b>{{ s.value }}{{ s.suffix }}</b><span>{{ s.label }}</span></div>{% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+        {# ---------- Right: program monitor ---------- #}
+        <div class="hero__right reveal">
+          <div class="monitor{% if site.has_auto_reel %} monitor--reel{% endif %}" id="monitor">
+            <div class="monitor__bar">
+              <span class="monitor__dots"><i></i><i></i><i></i></span>
+              <span class="monitor__file">Program · {{ site.name|lower }}_showreel_final.mp4</span>
+              <span class="monitor__live"><i></i>LIVE</span>
+            </div>
+            <div class="monitor__screen" id="monScreen">
+              {% for p in projects|slice:":5" %}
+              <div class="monitor__slide {% cycle 'art-1' 'art-2' 'art-3' 'art-4' 'art-5' %}{% if forloop.first %} is-active{% endif %}"
+                   data-title="{{ p.title }}" data-cat="{{ p.category.name|default:'Project' }}{% if p.year %} · {{ p.year }}{% endif %}">
+                {% if p.image %}<img src="{{ p.image }}" alt="">
+                {% elif p.video_file %}<video src="{{ p.video_file.url }}#t=0.5" muted playsinline preload="metadata"></video>
+                {% else %}<div class="project__art"><span>{{ p.title|slice:":1" }}</span></div>{% endif %}
+              </div>
+              {% empty %}
+              <div class="monitor__slide art-1 is-active" data-title="{{ site.tagline }}" data-cat="{{ site.title }}">
+                <div class="project__art"><span>{{ site.name|slice:":1"|upper }}</span></div>
+              </div>
+              {% endfor %}
+              {% if site.showreel_file %}
+              <video class="monitor__reel" id="monReel" src="{{ site.showreel_file.url }}" autoplay muted loop playsinline preload="auto" aria-label="Showreel"></video>
+              {% elif site.showreel_bg_embed %}
+              <iframe class="monitor__reel monitor__reel--embed" src="{{ site.showreel_bg_embed }}" title="Showreel" allow="autoplay; encrypted-media; picture-in-picture" tabindex="-1" loading="eager"></iframe>
+              {% endif %}
+              <div class="monitor__guides" aria-hidden="true"></div>
+              {% if site.has_auto_reel %}
+              <button type="button" class="monitor__sound" data-showreel
+                      data-video="{% if site.showreel_file %}{{ site.showreel_file.url }}{% endif %}"
+                      data-embed="{{ site.showreel_embed }}" aria-label="Watch showreel with sound">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
+                Watch with sound
+              </button>
+              {% elif site.showreel_file or site.showreel_url %}
+              <button type="button" class="monitor__play" data-showreel
+                      data-video="{% if site.showreel_file %}{{ site.showreel_file.url }}{% endif %}"
+                      data-embed="{{ site.showreel_embed }}" aria-label="Watch showreel">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              </button>
+              {% else %}
+              <a href="#work" class="monitor__play" aria-label="See projects">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              </a>
+              {% endif %}
+              <div class="monitor__caption">
+                <small>Now playing</small>
+                {% if site.has_auto_reel %}
+                <strong>Showreel {% now "Y" %}</strong>
+                <span>{{ site.name }} · {{ site.title }}</span>
+                {% else %}
+                <strong id="monTitle">{% if projects %}{{ projects.0.title }}{% else %}{{ site.tagline }}{% endif %}</strong>
+                <span id="monCat">{% if projects %}{{ projects.0.category.name|default:"Project" }}{% else %}{{ site.title }}{% endif %}</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="monitor__controls">
+              <button type="button" class="monitor__btn" id="monToggle" aria-label="Pause timeline">
+                <svg class="i-pause" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+                <svg class="i-play" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              </button>
+              <div class="monitor__progress"><i id="monProgress"></i></div>
+              <span class="monitor__tc" id="timecode">00:00:00:00</span>
+            </div>
+          </div>
+          <div class="chip-float chip-float--1"><b>✦</b> Color graded</div>
+          <div class="chip-float chip-float--2"><b>4K</b> Export ready</div>
+          <div class="chip-float chip-float--3"><b>▶</b> {{ projects|length }} project{{ projects|length|pluralize }}</div>
+        </div>
+      </div>
+
+      {# ---------- Bottom: editing timeline ---------- #}
+      <div class="timeline reveal" id="timeline">
+        <div class="timeline__head">
+          <span><b>Sequence 01</b> · drag the playhead or click a clip</span>
+          <span class="timeline__tc" id="tlTc">00:00:00:00</span>
+        </div>
+        <div class="timeline__grid">
+          <div class="timeline__labels"><span>V2</span><span>V1</span><span>A1</span></div>
+          <div class="timeline__body" id="tlBody">
+            <div class="timeline__ruler" aria-hidden="true"></div>
+            <div class="lane lane--fx">
+              {% for s in services|slice:":4" %}
+              <span class="clip clip--fx" style="--grow: {% cycle '3' '2' '4' '2' %}; --gap: {% cycle '4' '6' '3' '5' %}"><span>{{ s.title }}</span></span>
+              {% endfor %}
+            </div>
+            <div class="lane lane--video" id="tlV1">
+              {% for p in projects|slice:":5" %}
+              <button type="button" class="clip clip--video{% if forloop.first %} is-live{% endif %}" data-index="{{ forloop.counter0 }}" style="--grow: {% cycle '5' '4' '6' '3' '4' %}">
+                <i class="clip__perf" aria-hidden="true"></i><span>{{ p.title }}</span>
+              </button>
+              {% empty %}
+              <button type="button" class="clip clip--video is-live" data-index="0" style="--grow: 1"><i class="clip__perf"></i><span>{{ site.tagline }}</span></button>
+              {% endfor %}
+            </div>
+            <div class="lane lane--audio"><div class="wave" id="tlWave"></div></div>
+            <div class="playhead" id="playhead"><span></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MARQUEE ============ -->
+    {% if site.marquee_list %}
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        {% for _ in "1234" %}{% for item in site.marquee_list %}<span>{{ item }}</span><b>✦</b>{% endfor %}{% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ============ ABOUT ============ -->
+    <section class="section about" id="about">
+      <div class="container about__grid">
+        <div class="about__visual reveal">
+          <div class="frame-card">
+            <div class="frame-card__strip"></div>
+            <div class="frame-card__body">
+              {% if site.profile_photo %}
+              <img class="frame-card__photo" src="{{ site.profile_photo.url }}" alt="{{ site.name }}">
+              {% else %}
+              <span class="frame-card__mono">{{ site.name|slice:":1"|upper }}</span>
+              {% endif %}
+              <span class="frame-card__label">Scene 01 · Take 01</span>
+            </div>
+            <div class="frame-card__strip"></div>
+          </div>
+          {% if site.badge_number %}
+          <div class="about__floating">
+            <strong>{{ site.badge_number }}</strong>
+            <span>{{ site.badge_label }}</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="about__text">
+          <span class="eyebrow reveal">// About Me</span>
+          <h2 class="section-title reveal">{{ site.about_title }} <em class="gold-text">{{ site.about_gold }}</em></h2>
+          {% for para in site.about_paragraphs %}<p class="reveal">{{ para }}</p>{% endfor %}
+          {% if site.about_tags_list %}
+          <div class="about__tags reveal">{% for t in site.about_tags_list %}<span>{{ t }}</span>{% endfor %}</div>
+          {% endif %}
+          {% if site.resume %}
+          <a href="{{ site.resume.url }}" target="_blank" rel="noopener" class="btn btn--ghost btn--sm about__cv reveal magnetic">Download CV ↓</a>
+          {% endif %}
+
+          {% if stats %}
+          <div class="stats">
+            {% for s in stats %}
+            <div class="stat reveal">
+              <div class="stat__value"><span class="counter" data-target="{{ s.value }}">0</span><em>{{ s.suffix }}</em></div>
+              <div class="stat__label">{{ s.label }}</div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CLIENTS ============ -->
+    {% if clients %}
+    <section class="clients">
+      <div class="container">
+        <p class="clients__label reveal">Trusted by creators & brands</p>
+        <div class="clients__row reveal">
+          {% for c in clients %}
+          {% if c.url %}<a href="{{ c.url }}" target="_blank" rel="noopener" class="client">{% else %}<div class="client">{% endif %}
+            {% if c.logo %}<img src="{{ c.logo.url }}" alt="{{ c.name }}" loading="lazy">{% else %}<span>{{ c.name }}</span>{% endif %}
+          {% if c.url %}</a>{% else %}</div>{% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ SERVICES ============ -->
+    {% if services %}
+    <section class="section services" id="services">
+      <div class="services__bgtext" aria-hidden="true">Edit ✦ Color ✦ Motion ✦ Design ✦ Sound ✦</div>
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow reveal">// What I Do</span>
+          <h2 class="section-title reveal">{{ site.services_title }} <em class="gold-text">{{ site.services_gold }}</em></h2>
+        </div>
+        <div class="services__grid">
+          {% for s in services %}
+          <article class="service-card spotlight reveal">
+            <span class="service-card__border" aria-hidden="true"></span>
+            <span class="service-card__shine" aria-hidden="true"></span>
+            <div class="service-card__num">{{ forloop.counter|stringformat:"02d" }}</div>
+            <div class="service-card__icon">
+              {% if s.icon == "film" %}<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 4v16M17 4v16M2 9h5M2 15h5M17 9h5M17 15h5"/></svg>
+              {% elif s.icon == "phone" %}<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M10.5 9.5v5l4-2.5z"/></svg>
+              {% elif s.icon == "palette" %}<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><circle cx="8" cy="10" r="1.3"/><circle cx="12" cy="7" r="1.3"/><circle cx="16" cy="10" r="1.3"/><path d="M12 21.5c-1.5 0-2-1.5-1-2.5s.5-3 1.5-3H16"/></svg>
+              {% elif s.icon == "spark" %}<svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg>
+              {% elif s.icon == "pen" %}<svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.6 7.6"/><circle cx="11" cy="11" r="2"/></svg>
+              {% elif s.icon == "camera" %}<svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+              {% elif s.icon == "layers" %}<svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              {% elif s.icon == "image" %}<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              {% elif s.icon == "play" %}<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="4"/><path d="M10 9v6l5-3z"/></svg>
+              {% else %}<svg viewBox="0 0 24 24"><path d="M2 12h2M6 8v8M10 4v16M14 7v10M18 10v4M22 12h0"/></svg>
+              {% endif %}
+            </div>
+            <h3>{{ s.title }}</h3>
+            <p>{{ s.description }}</p>
+            {% if s.starting_price %}<span class="service-card__price">{{ s.starting_price }}</span>{% endif %}
+            <span class="service-card__arrow">↗</span>
+          </article>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ WORK / PROJECTS ============ -->
+    {% if projects %}
+    <section class="section work" id="work">
+      <div class="container">
+        <div class="section-head section-head--split">
+          <div>
+            <span class="eyebrow reveal">// Selected Work</span>
+            <h2 class="section-title reveal">{{ site.work_title }} <em class="gold-text">{{ site.work_gold }}</em></h2>
+          </div>
+          {% if categories|length > 1 %}
+          <div class="filters reveal" id="filters">
+            <button class="filter is-active" data-filter="all">All</button>
+            {% for c in categories %}<button class="filter" data-filter="{{ c.slug }}">{{ c.name }}</button>{% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="work__grid" id="workGrid">
+          {% for p in projects %}
+          <article class="project reveal {% if p.featured %}project--featured{% endif %}"
+                   data-category="{{ p.category.slug|default:'' }}"
+                   data-title="{{ p.title }}"
+                   data-client="{{ p.client }}"
+                   data-year="{{ p.year|default_if_none:'' }}"
+                   data-role="{{ p.role }}"
+                   data-desc="{{ p.description }}"
+                   data-tools="{{ p.tool_list|join:', ' }}"
+                   data-video="{% if p.video_file %}{{ p.video_file.url }}{% endif %}"
+                   data-embed="{{ p.embed_url }}"
+                   data-cat-label="{{ p.category.name|default:'' }}"
+                   tabindex="0">
+            <div class="project__media {% cycle 'art-1' 'art-2' 'art-3' 'art-4' 'art-5' 'art-6' 'art-7' %}">
+              {% if p.image %}<img src="{{ p.image }}" alt="{{ p.title }}" loading="lazy">
+              {% elif not p.video_file %}<div class="project__art"><span>{{ p.title|slice:":1" }}</span></div>{% endif %}
+              {% if p.video_file %}
+              <video class="project__preview {% if not p.image %}is-poster{% endif %}" src="{{ p.video_file.url }}#t=0.5" muted loop playsinline preload="metadata" {% if p.preview_on_hover %}data-hover{% endif %}></video>
+              {% endif %}
+              <div class="project__overlay">
+                <span class="project__play"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+              </div>
+              <span class="project__tc">00:0{{ forloop.counter }}:{{ forloop.counter|add:"23" }}:12</span>
+            </div>
+            <div class="project__info">
+              <div>
+                <span class="project__cat">{{ p.category.name|default:"Project" }}{% if p.year %} · {{ p.year }}{% endif %}</span>
+                <h3>{{ p.title }}</h3>
+                {% if p.client %}<p class="project__client">{{ p.client }}</p>{% endif %}
+              </div>
+              <span class="project__arrow">↗</span>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+
+        {% if has_samples and user.is_staff %}
+        <p class="work__note">✦ Some projects are samples — edit or delete them in <a href="/admin/portfolio/project/">/admin</a>. (Only you see this note.)</p>
+        {% endif %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ SKILLS / TOOLS ============ -->
+    {% if tools or highlights %}
+    <section class="section skills" id="skills">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow reveal">// Toolkit</span>
+          <h2 class="section-title reveal">{{ site.skills_title }} <em class="gold-text">{{ site.skills_gold }}</em></h2>
+        </div>
+        {% if tools %}
+        <div class="toolkit">
+          {# ---- Orbit: tools circling Pranav's logo ---- #}
+          <div class="orbit" aria-hidden="true">
+            <div class="orbit__glow"></div>
+            <div class="orbit__core"><span>{{ site.name|slice:":1"|upper }}</span><small>Toolkit</small></div>
+            <div class="orbit__ring orbit__ring--inner" style="--n: {{ orbit_inner|length }}">
+              {% for t in orbit_inner %}
+              <div class="orbit__slot" style="--i: {{ forloop.counter0 }}">
+                <div class="orbit__item"><div class="orbit__bob" style="--d: {{ forloop.counter0 }}">
+                  {% if t.logo %}<img src="{{ t.logo.url }}" alt="">{% else %}{{ t.short }}{% endif %}
+                </div></div>
+              </div>
+              {% endfor %}
+            </div>
+            <div class="orbit__ring orbit__ring--outer" style="--n: {{ orbit_outer|length }}">
+              {% for t in orbit_outer %}
+              <div class="orbit__slot" style="--i: {{ forloop.counter0 }}">
+                <div class="orbit__item"><div class="orbit__bob" style="--d: {{ forloop.counter0 }}">
+                  {% if t.logo %}<img src="{{ t.logo.url }}" alt="">{% else %}{{ t.short }}{% endif %}
+                </div></div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          {# ---- Tool cards ---- #}
+          <div class="toolkit__side">
+            {% if tool_groups|length > 1 %}
+            <div class="tool-tabs" id="toolTabs">
+              <button class="tool-tab is-active" data-group="all">All</button>
+              {% for key, label in tool_groups %}<button class="tool-tab" data-group="{{ key }}">{{ label }}</button>{% endfor %}
+            </div>
+            {% endif %}
+            <div class="tool-grid" id="toolGrid">
+              {% for t in tools %}
+              <div class="tcard" data-group="{{ t.group }}" data-level="{{ t.level }}">
+                <div class="tcard__float" style="--d: {{ forloop.counter0 }}">
+                  <div class="tcard__ring">
+                    <svg viewBox="0 0 100 100" aria-hidden="true">
+                      <circle class="tcard__track" cx="50" cy="50" r="44"/>
+                      <circle class="tcard__fill" cx="50" cy="50" r="44" style="--p: {{ t.level }}"/>
+                    </svg>
+                    <div class="tcard__icon">{% if t.logo %}<img src="{{ t.logo.url }}" alt="">{% else %}{{ t.short }}{% endif %}</div>
+                  </div>
+                  <h4>{{ t.name }}</h4>
+                  <div class="tcard__meta"><span class="tcard__pct"><b data-count="{{ t.level }}">{{ t.level }}</b>%</span>{% if t.years %}<span class="tcard__yrs">{{ t.years }}</span>{% endif %}</div>
+                  <span class="tcard__group">{{ t.get_group_display }}</span>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        {% if highlights %}
+        <div class="why reveal">
+          {% for h in highlights %}
+          <div class="why__item"><b>{{ h.icon }}</b><div><h5>{{ h.title }}</h5><p>{{ h.text }}</p></div></div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ PROCESS ============ -->
+    {% if process %}
+    <section class="section process" id="process">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow reveal">// Workflow</span>
+          <h2 class="section-title reveal">{{ site.process_title }} <em class="gold-text">{{ site.process_gold }}</em></h2>
+        </div>
+        <div class="process__track" style="--steps: {{ process|length }}">
+          <div class="process__line"><i id="processLine"></i></div>
+          {% for p in process %}
+          <div class="step reveal">
+            <div class="step__dot"></div>
+            <span class="step__num">{{ forloop.counter|stringformat:"02d" }}</span>
+            <h4>{{ p.title }}</h4>
+            <p>{{ p.text }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ TESTIMONIALS ============ -->
+    {% if testimonials %}
+    <section class="section testimonials" id="testimonials">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow reveal">// Testimonials</span>
+          <h2 class="section-title reveal">{{ site.testimonials_title }} <em class="gold-text">{{ site.testimonials_gold }}</em></h2>
+        </div>
+        <div class="testimonials__grid">
+          {% for t in testimonials %}
+          <figure class="quote spotlight reveal">
+            <div class="quote__mark">“</div>
+            <div class="quote__stars">{% for _ in t.stars %}★{% endfor %}</div>
+            <blockquote>{{ t.quote }}</blockquote>
+            <figcaption>
+              {% if t.photo %}<img src="{{ t.photo.url }}" alt="{{ t.name }}" loading="lazy">{% else %}<span class="quote__avatar">{{ t.name|slice:":1"|upper }}</span>{% endif %}
+              <div><strong>{{ t.name }}</strong>{% if t.role %}<small>{{ t.role }}</small>{% endif %}</div>
+            </figcaption>
+          </figure>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ============ CTA BAND ============ -->
+    <section class="cta-band">
+      <div class="cta-band__inner reveal">
+        <h2>{{ site.cta_title }}<br><em class="gold-text">{{ site.cta_gold }}</em></h2>
+        <a href="#contact" class="btn btn--gold btn--lg magnetic">{{ site.cta_button }} ✦</a>
+      </div>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section class="section contact" id="contact">
+      <div class="container contact__grid">
+        <div class="contact__info">
+          <span class="eyebrow reveal">// Contact</span>
+          <h2 class="section-title reveal">{{ site.contact_title }} <em class="gold-text">{{ site.contact_gold }}</em></h2>
+          <p class="reveal">{{ site.contact_intro }}</p>
+
+          <div class="contact__cards">
+            <a href="mailto:{{ site.email }}" class="contact-card spotlight reveal">
+              <span class="contact-card__icon"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg></span>
+              <div><small>Email</small><strong>{{ site.email }}</strong></div>
+              <span class="contact-card__go">↗</span>
+            </a>
+            {% if site.phone %}
+            <a href="tel:{{ site.phone_link }}" class="contact-card spotlight reveal">
+              <span class="contact-card__icon"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg></span>
+              <div><small>Phone</small><strong>{{ site.phone }}</strong></div>
+              <span class="contact-card__go">↗</span>
+            </a>
+            {% endif %}
+            {% if site.whatsapp %}
+            <a href="https://wa.me/{{ site.whatsapp }}?text={{ site.whatsapp_message|urlencode }}" target="_blank" rel="noopener" class="contact-card spotlight reveal">
+              <span class="contact-card__icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 01-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1121 11.5z"/></svg></span>
+              <div><small>WhatsApp</small><strong>Chat instantly</strong></div>
+              <span class="contact-card__go">↗</span>
+            </a>
+            {% endif %}
+          </div>
+          {% if site.socials %}
+          <div class="socials reveal">
+            {% for name, url in site.socials %}<a href="{{ url }}" target="_blank" rel="noopener" class="social magnetic">{{ name }} ↗</a>{% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+        <form class="contact__form reveal" method="post" action="/">
+          {% csrf_token %}
+          {% if messages %}{% for m in messages %}<div class="alert alert--{{ m.tags }}">{{ m }}</div>{% endfor %}{% endif %}
+          <div class="field-row">
+            <div class="field"><input type="text" name="name" id="f-name" placeholder=" " required maxlength="120"><label for="f-name">Your Name</label></div>
+            <div class="field"><input type="email" name="email" id="f-email" placeholder=" " required><label for="f-email">Email Address</label></div>
+          </div>
+          {% if site.project_types_list %}
+          <div class="chips-label">What do you need?</div>
+          <div class="chips">
+            {% for t in site.project_types_list %}<label class="chip"><input type="radio" name="project_type" value="{{ t }}"><span>{{ t }}</span></label>{% endfor %}
+          </div>
+          {% endif %}
+          {% if site.budgets_list %}
+          <div class="chips-label">Budget</div>
+          <div class="chips">
+            {% for b in site.budgets_list %}<label class="chip"><input type="radio" name="budget" value="{{ b }}"><span>{{ b }}</span></label>{% endfor %}
+          </div>
+          {% endif %}
+          <div class="field"><textarea name="message" id="f-msg" rows="4" placeholder=" " required></textarea><label for="f-msg">Tell me about your project</label></div>
+          <button type="submit" class="btn btn--gold btn--block magnetic">Send Message ✦</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="footer__big" aria-hidden="true">{{ site.name|upper }}</div>
+    <div class="container footer__row">
+      <div>
+        <a href="#home" class="nav__logo">{{ site.name }}<span>.</span></a>
+        <p class="footer__tag">{{ site.tagline }}</p>
+      </div>
+      <div class="footer__links">
+        <a href="mailto:{{ site.email }}">{{ site.email }}</a>
+        {% if site.phone %}<a href="tel:{{ site.phone_link }}">{{ site.phone }}</a>{% endif %}
+        {% for name, url in site.socials %}<a href="{{ url }}" target="_blank" rel="noopener">{{ name }}</a>{% endfor %}
+      </div>
+      <a href="#home" class="footer__top magnetic" aria-label="Back to top">↑</a>
+    </div>
+    <div class="container footer__bottom">
+      <span>© <span id="year"></span> {{ site.name }}. All frames reserved.</span>
+      <span>{{ site.title }} · {{ site.location }}</span>
+    </div>
+  </footer>
+
+  <!-- ============ VIDEO MODAL ============ -->
+  <div class="modal" id="modal" aria-hidden="true" role="dialog">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__box">
+      <button class="modal__close" data-close aria-label="Close">✕</button>
+      <div class="modal__media" id="modalMedia"></div>
+      <div class="modal__body" id="modalBody">
+        <span class="project__cat" id="modalCat"></span>
+        <h3 id="modalTitle"></h3>
+        <p id="modalDesc"></p>
+        <div class="modal__meta">
+          <div><small>Client</small><span id="modalClient"></span></div>
+          <div><small>Role</small><span id="modalRole"></span></div>
+          <div><small>Tools</small><span id="modalTools"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if user.is_staff %}
+  <a href="/admin/" class="edit-float">✎ Edit website</a>
+  {% endif %}
+
+  {% if site.whatsapp %}
+  <a href="https://wa.me/{{ site.whatsapp }}?text={{ site.whatsapp_message|urlencode }}" target="_blank" rel="noopener" class="wa-float" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg>
+  </a>
+  {% endif %}
+
+  {{ site.roles_list|json_script:"roles" }}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+  <script src="{% static 'portfolio/js/main.js' %}" defer></script>
+  <script src="{% static 'portfolio/js/hero.js' %}" defer></script>
+  <script src="{% static 'portfolio/js/fx.js' %}" defer></script>
+</body>
+</html>

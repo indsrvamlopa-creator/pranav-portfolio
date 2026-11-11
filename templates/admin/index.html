@@ -1,0 +1,120 @@
+{% extends "admin/base_site.html" %}
+{% load dashboard %}
+
+{% block bodyclass %}{{ block.super }} dashboard pf-dashboard{% endblock %}
+{% block breadcrumbs %}<ol class="breadcrumbs"><li aria-current="page">Dashboard</li></ol>{% endblock %}
+{% block content_title %}{% endblock %}
+{% block coltype %}colM{% endblock %}
+{% block sidebar %}{% endblock %}
+
+{% block content %}
+{% dashboard_data as d %}
+
+<div class="pf-page-head">
+  <div>
+    <h1>Dashboard</h1>
+    <p>Welcome back, {{ d.site.name }}. Here's what's happening with your portfolio.</p>
+  </div>
+  <a class="pf-button" href="{{ d.add_project_url }}">{% icon "plus" 16 %} New project</a>
+</div>
+
+{# ---------- Stats ---------- #}
+<div class="pf-stats">
+  {% for s in d.stats %}
+  <a class="pf-stat{% if s.alert %} pf-stat--alert{% endif %}" href="{{ s.url }}">
+    <span class="pf-stat__icon">{% icon s.icon 20 %}</span>
+    <span class="pf-stat__value">{{ s.value }}</span>
+    <span class="pf-stat__label">{{ s.label }}</span>
+  </a>
+  {% endfor %}
+</div>
+
+<div class="pf-grid">
+  {# ---------- Left column ---------- #}
+  <div class="pf-col">
+    <section class="pf-card">
+      <header class="pf-card__head">
+        <h2>Recent projects</h2>
+        <a href="{{ d.projects_url }}" class="pf-link">View all {% icon "arrow" 14 %}</a>
+      </header>
+      {% if d.recent_projects %}
+      <ul class="pf-rows">
+        {% for p in d.recent_projects %}
+        <li>
+          <a class="pf-row" href="{% url 'admin:portfolio_project_change' p.pk %}">
+            {% if p.image %}<img class="pf-row__thumb" src="{{ p.image }}" alt="">
+            {% else %}<span class="pf-row__thumb pf-row__thumb--empty">{{ p.title|initial }}</span>{% endif %}
+            <span class="pf-row__main">
+              <strong>{{ p.title }}</strong>
+              <small>{{ p.category.name|default:"No category" }}{% if p.year %} · {{ p.year }}{% endif %}</small>
+            </span>
+            {% if p.is_sample %}<span class="pf-tag pf-tag--muted">Sample</span>{% endif %}
+            {% if p.video_file or p.video_url %}<span class="pf-tag pf-tag--gold">Video</span>{% endif %}
+            <span class="pf-tag {% if p.is_active %}pf-tag--green{% else %}pf-tag--muted{% endif %}">{% if p.is_active %}Live{% else %}Hidden{% endif %}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="pf-empty">No projects yet. <a href="{{ d.add_project_url }}">Add your first project</a></div>
+      {% endif %}
+    </section>
+
+    <section class="pf-card">
+      <header class="pf-card__head">
+        <h2>Latest messages</h2>
+        <a href="{{ d.messages_url }}" class="pf-link">Open inbox {% icon "arrow" 14 %}</a>
+      </header>
+      {% if d.recent_messages %}
+      <ul class="pf-rows">
+        {% for m in d.recent_messages %}
+        <li>
+          <a class="pf-row" href="{% url 'admin:portfolio_contactmessage_change' m.pk %}">
+            <span class="pf-avatar pf-avatar--soft">{{ m.name|initial }}</span>
+            <span class="pf-row__main">
+              <strong>{{ m.name }}{% if not m.is_read %} <i class="pf-new">New</i>{% endif %}</strong>
+              <small>{{ m.message|truncatechars:90 }}</small>
+            </span>
+            <time>{{ m.created|timesince }} ago</time>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="pf-empty">No messages yet. Enquiries from your contact form will appear here.</div>
+      {% endif %}
+    </section>
+  </div>
+
+  {# ---------- Right column ---------- #}
+  <div class="pf-col">
+    <section class="pf-card">
+      <header class="pf-card__head"><h2>Quick actions</h2></header>
+      <ul class="pf-actions">
+        {% for q in d.quick %}
+        <li><a href="{{ q.url }}">
+          <span class="pf-actions__icon">{% icon q.icon 18 %}</span>
+          <span><strong>{{ q.label }}</strong><small>{{ q.hint }}</small></span>
+          {% icon "arrow" 16 %}
+        </a></li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="pf-card">
+      <header class="pf-card__head">
+        <h2>Setup checklist</h2>
+        <span class="pf-progress-label">{{ d.checklist_done }}/{{ d.checklist_total }}</span>
+      </header>
+      <div class="pf-progress"><i style="width: {% widthratio d.checklist_done d.checklist_total 100 %}%"></i></div>
+      <ul class="pf-check">
+        {% for c in d.checklist %}
+        <li class="{% if c.done %}is-done{% endif %}">
+          <a href="{{ c.url }}"><span class="pf-check__box">{% if c.done %}{% icon "check" 14 %}{% endif %}</span>{{ c.label }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}
