@@ -10,26 +10,56 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
+# Private values live in the .env file next to manage.py (not in the code).
+# On Render, set the same names under the service's "Environment" tab instead.
+def _load_env(path):
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            key, value = line.split("=", 1)
+            os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+_load_env(BASE_DIR / ".env")
+
+ON_RENDER = bool(os.environ.get("RENDER"))   # Render sets RENDER=true automatically
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-$^b4vyamnfb%erds1v3_*sguiogr0)$-f3vdg6&1_#_6b2ropw'
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    'django-insecure-$^b4vyamnfb%erds1v3_*sguiogr0)$-f3vdg6&1_#_6b2ropw',
+)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Debug is on locally, off on Render (override with DEBUG=True/False)
+DEBUG = os.environ.get("DEBUG", "False" if ON_RENDER else "True").lower() in ("1", "true", "yes")
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    "https://p1c4s84c-8000.inc1.devtunnels.ms/"
+    ".onrender.com",
+    ".devtunnels.ms",
 ]
+if os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
+    ALLOWED_HOSTS.append(os.environ["RENDER_EXTERNAL_HOSTNAME"])
+# extra domains, e.g. ALLOWED_HOSTS_EXTRA=pranav.in,www.pranav.in
+ALLOWED_HOSTS += [h.strip() for h in os.environ.get("ALLOWED_HOSTS_EXTRA", "").split(",") if h.strip()]
+
+CSRF_TRUSTED_ORIGINS = ["https://*.onrender.com", "https://*.devtunnels.ms"] + [
+    "https://" + h.lstrip(".") for h in os.environ.get("ALLOWED_HOSTS_EXTRA", "").split(",") if h.strip()
+]
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 
 # Application definition
@@ -46,6 +76,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',   # serves CSS/JS in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -120,6 +151,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+# WhiteNoise finds files straight from the apps, so it works even without collectstatic
+WHITENOISE_USE_FINDERS = True
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -134,22 +168,6 @@ MAILERS = {
     },
 }
 
-
-# Private values live in the .env file next to manage.py (not in the code).
-def _load_env(path):
-    import os
-    if not path.exists():
-        return
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if line and not line.startswith("#") and "=" in line:
-            key, value = line.split("=", 1)
-            os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
-
-
-_load_env(BASE_DIR / ".env")
-
-import os  # noqa: E402
 
 # Brevo — contact form messages are emailed to CONTACT_RECEIVER_EMAIL
 BREVO_API_KEY = os.environ.get("BREVO_API_KEY", "")

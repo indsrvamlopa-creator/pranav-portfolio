@@ -58,9 +58,9 @@ def home(request):
 
 
 def media_serve(request, path):
-    """Development-only media server that understands HTTP Range requests,
+    """Media server that understands HTTP Range requests,
     so uploaded videos can be seeked/scrubbed (Django's built-in one can't).
-    In production your web server (nginx, etc.) serves /media/ directly."""
+    Used locally and on Render (which has no separate file server)."""
     import mimetypes
     import os
     import re
